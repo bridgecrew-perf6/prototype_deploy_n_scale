@@ -1,7 +1,7 @@
 # Prototype, deploy and scale robotics solutions with balena and ROS
 
 In [my last post](https://www.balena.io/blog/build-one-or-many-robots-balena-ros-tech-stack-block/), I walked through a high-level look at how one could use balena and ROS as a platform to create one or many edge device robots. Since then, I’ve published a number of balena Blocks that help bring this vision to life, and in this post, I’d like to walk through how anyone can use these blocks to prototype, deploy, and scale an IoT robot fleet.
-    [IMG]
+
 All around the world, people use ROS to develop robotics applications. The ROS ecosystem is a large and diverse group or organizations and individuals, including academia, enterprises such as ABB and Boston Dynamics, government and institutions like NASA and ESA, and thousands of robotics enthusiasts and makers all around the world.
 
 ### Demonstrating how Docker and ROS *can* work well together
@@ -21,39 +21,62 @@ Edge devices can be connected to the internet through various methods, from fast
 
 #### Connecting to external hardware resources
 Using GPIO, I2C, USB and other similar interfaces usually requires administrative rights on any linux box. A common solution to this when using docker is to add `privileged: True` to your `docker-compose.yaml` file for that specific container. However, this opens the door to a bunch of potential security issues. That’s why everybody will tell you that [privileged containers are a bad idea](https://www.trendmicro.com/en_us/research/19/l/why-running-a-privileged-container-in-docker-is-a-bad-idea.html).
+
 Adding a single device by its path: `/dev/i2c-1` instead of giving access to the whole bus or tree: `/dev/i2c` doesn't require a container to be privileged. In the case of I2C this is, but what about a USB-to-UART converter like CH340 which changes its name at every reconnection ?
+
 In essence, `privileged: True` enables all the [**linux capabilities**](https://man7.org/linux/man-pages/man7/capabilities.7.html) for a specific container. A more fine grained way of accessing external hardware is to only enable `CAP_RAWIO` capability. [Here](https://www.balena.io/docs/learn/develop/hardware/)'s more info on how to do that.
+
 Additionally, if you are using a [balena base image]() for your container you can make use of UDEV to connect to dynamically named devices like the aforementioned usb-to-serial bridge.
 
 #### Networking
 It's true that ROS has a few strict requirements, a few environment variables that you have to set in order to enable a multi-machine/multi-container setup. You can check them out here. 
+
 On balena devices, services can be resolved by their hostname, no need to find out their IP or anything else. Check out the readme for [ros-core]() to see how easy it is to get multiple ros-based containers to talk to each other. 
-Balena can furthermore help you by allowing you to SSH into your robots remotely, either from the dashboard or our [balena-cli]() tool. Additionally, if you enable the [Public URL](https://www.balena.io/docs/learn/manage/actions/#enable-public-device-url) option on the dashboard, you can expose a web-ui to the web. 
+Balena can furthermore help you by allowing you to SSH into your robots remotely, either from the dashboard or our [balena-cli]() tool.
+
+Additionally, if you enable the [Public URL](https://www.balena.io/docs/learn/manage/actions/#enable-public-device-url) option on the dashboard, you can expose a web-ui to the web. 
+
 Oh and as for **fleet management**, that’s literally what we do. :)
+
 That being said, we beg to differ and we won’t only show you why docker and ROS are a good fit, but also how we can help you grow your robotics solution from the prototyping stage to mass deployment and scaling using the same tools and principles.
 ### Let’s review some ROS Terminology
 For the sake of clarity let’s define some of the basic ROS lingo used in this article:
-Nodes are the basic units of computation for ROS. Nodes can either originate from ROS Packages or written by you in one of the client libraries, either roscpp, or rospy.
-Master is the first ROS process launched. It works similarly to a DNS, it provides name registration/lookup for each node. Additionally it includes a key based storage system for parameters.
-Messages are the means of communication for the Publisher/Subscriber Model. They are simply data structures composed of either standard primitive types, or arrays.
-Topics are the channels of communication for the Publisher/Subscriber Model. Topics might require a specific message type.
+
+* **Nodes** are the basic units of computation for ROS. Nodes can either originate from ROS Packages or written by you in one of the client libraries, either roscpp, or rospy.
+
+* **Master** is the first ROS process launched. It works similarly to a DNS, it provides name registration/lookup for each node. Additionally it includes a key based storage system for parameters.
+* **Messages** are the means of communication for the Publisher/Subscriber Model. They are simply data structures composed of either standard primitive types, or arrays.
+* **Topics** are the channels of communication for the Publisher/Subscriber Model. Topics might require a specific message type.
+  
 ## Prototyping
 Let’s take a concrete example out of my personal experience. For a former project, I was considering a couple of different single-board computers (SBCs). My goal was to find the cheapest, smallest, most powerful option that could support the Intel RealSense camera.
-I bought three different options, BananaPi Zero, NanoPi Duo2 and another one I can't remember. I had to compile the RealSense SDK and its ROS wrapper on the boards themselves, with build settings corresponding to the kernel version each vendor offered. Anyway, the whole operation took several weeks, not to mention the compile time for the SDK only, was around 12h+ for each board.
+
+I bought three different options, BananaPi Zero, NanoPi Duo2 and another one I can't remember. I had to compile the RealSense SDK and its ROS wrapper on the boards themselves, with build settings corresponding to the kernel version each vendor offered. 
+
+Anyway, the whole operation took several weeks, not to mention the compile time for the SDK only, was around 12h+ for each board.
 This is exactly the kind of situation we mean when we say our mission is to “reduce friction for fleet owners”.
 Let’s explore the ways in which balena can help you drastically shorten your prototyping time.
 ### Blocks
 Per their official definition balena-blocks are “intelligent, drop-in chunks of functionality built to handle the basics, allowing you to focus on solving the hard problems”.
+
 Let’s take the former example of the realsense camera. You can wrap the installation of realsense SDK and its ROS package into a dockerfile, upload it to balenaHub, and target the architectures you want. Then, it’s ready to run on every board we support.
+
 You are not only saving time for yourself. But also for everyone who might be using this part. You’ll only need to reference the block in your docker-compose.yaml file and you are ready to go.
-We have prepared a few ROS blocks, both to test the way ros-core would plug in with other blocks, and to provide you with a neat robotics starter kit. Let’s explore some of the ros-centric blocks we have prepared for you:
+
+We have prepared a few ROS blocks, both to test the way ros-core would plug in with other blocks, and to provide you with a neat robotics starter kit. 
+
+Let’s explore some of the ros-centric blocks we have prepared for you:
+
 #### ros-core
-ros-core is the beating heart of the whole balena-ros ecosystem. It’s a full installation of ROS(1) Noetic wrapped inside a block.
-On runtime it runs the roscore process. This process keeps track of the nodes that are running, how to reach them, and what their message types are.
+ros-core is the beating heart of the whole balena-ros ecosystem. It’s a full installation of ROS(1) Noetic wrapped inside a block. On runtime it runs the roscore process. This process keeps track of the nodes that are running, how to reach them, and what their message types are.
+
 Instead of having a full copy of ROS for each service, we define a volume mount share and let the other ROS blocks access the same binaries, this reduces the amount of space needed considerably, and allows for layered ros-packages.
+
 Additionally, ros-core makes it possible that ROS nodes can all talk to each other even if they are part of different services/containers. For security reasons, there's a separate internal network for the services. However, you can open whatever port you want to the external world.
+
 To include ros-core in your balena solution, you simply need to add it to your docker-compose.yaml file like this:
-You can find more information about how roscore works on its github repository. Also, there’s a guide on how to write your own ros-core compatible images here
+
+You can find more information about how roscore works on its [github repository](https://github.com/cristidragomir97/ros-core). Also, there’s a guide on how to write your own ros-core compatible images [here](https://github.com/cristidragomir97/robotics-images)
 
 ```yaml
 version: "2.1"
@@ -81,15 +104,20 @@ services:
           - ros-bin:/opt/ros/noetic
 ``` 
 
-More info at [ros-core](https://github.com/cristidragomir97/ros-core)
+
 #### ros-io
+
 In a world where ICs, modules and electronics are going through long waiting times we are trying to lend a hand to makers to prototype much faster, and allow robotics fleet owners the flexibility to replace the hardware quickly and deploy fleets with mixed hardware configurations.
+
 ros-io aims to solve that by creating a hardware abstraction layer for modules and chips that are connected to I2C, UART and GPIO interfaces. This reduces friction by eliminating the need to write low-level code, firmware or ROS nodes and replaces it with a config file similar to the way docker-compose works.
+
 Here's how this all works:
-You define your hardware in a configuration file and upload to a git repository
+
+* You define your hardware in a configuration file and upload to a git repository
 ros-io downloads your config file, parses its contents and installs the proper packages and 3rd party dependencies
-Package code gets imported into the ros-io code, and worker threads are deployed:
-Workers wrap the part object, create ROS messages and map the read/update functions to rospy Subscriber and Publisher objects
+* Package code gets imported into the ros-io code, and worker threads are deployed:
+* Workers wrap the part object, create ROS messages and map the read/update functions to rospy Subscriber and Publisher objects
+
 Add this to your docker-compose.yaml file to use this block:
 ```yaml
 ros-io:
@@ -111,8 +139,9 @@ More info at [ros-io](https://github.com/cristidragomir97/ros-io)
 #### ros-camera
 
 This block adds plug and play ROS support for the official Raspberry Pi cameras. On runtime, if everything is connected properly, you’ll be able to see the camera feed from this sensor on the /image/compressed topic.
-This block wraps the most popular ROS package for the Raspberry Pi camera.
-Check out their github for more information.
+
+This block wraps the most popular ROS package for the Raspberry Pi camera. Check out [their github repository]() for more information.
+
 Add this to your docker-compose.yaml file to use this block:
 ```yaml
 ros-camera:
