@@ -130,17 +130,16 @@ ros-io:
     - ros-bin:/opt/ros/noetic
   devices:
     - "/dev/i2c-1:/dev/i2c-1"
- cap_add:
+  cap_add:
       - SYS_RAWIO
-
 ```
 
 More info at [ros-io](https://github.com/cristidragomir97/ros-io)
 #### ros-camera
 
-This block adds plug and play ROS support for the official Raspberry Pi cameras. On runtime, if everything is connected properly, you’ll be able to see the camera feed from this sensor on the /image/compressed topic.
+This block adds plug and play ROS support for the official Raspberry Pi cameras. On runtime, if everything is connected properly, you’ll be able to see the camera feed from this sensor on the `/image/compressed` topic.
 
-This block wraps the most popular ROS package for the Raspberry Pi camera. Check out [their github repository]() for more information.
+This block wraps the most popular ROS package for the Raspberry Pi camera. Check out [their github repository](https://github.com/UbiquityRobotics/raspicam_node) for more information.
 
 Add this to your docker-compose.yaml file to use this block:
 ```yaml
@@ -154,21 +153,44 @@ ros-camera:
        - ROS_MASTER_URI=http://ros-core:11311
     volumes:
       - ros-bin:/opt/ros/noetic
-      - boost-lib:/usr/include/boost
     devices:
-      - "/dev:/dev"
+      - "/dev/vchiq:/dev/vchiq"
     cap_add:
       - SYS_RAWIO
 ```
 
 More info at [ros-camera](https://github.com/cristidragomir97/ros-camera)
+
 #### ros-lidar 
 
-Slamtec’s RPLidar is one of the most affordable 2D LIDAR hardware solutions on the market. 
+Slamtec’s RPLidar series is one of the most affordable 2D LIDAR hardware solutions on the market. 
+This block adds plug and play ROS support for the official these devices, by wrapping [their official ROS package](https://github.com/Slamtec/rplidar_ros). On runtime, if everything is connected properly, you’ll be able to see the laser scan data from this sensor on the `/scan` topic.
+
+```yaml
+ros-rplidar:
+    depends_on:
+      - ros-core
+    image: cristidragomir97/ros-rplidar
+    environment: 
+       - UDEV=1
+       - ROS_HOSTNAME=ros-rplidar
+       - ROS_MASTER_URI=http://ros-core:11311
+    volumes:
+      - ros-bin:/opt/ros/noetic
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    cap_add:
+      - SYS_RAWIO
+```
+
+More info at [ros-rplidar](https://github.com/cristidragomir97/ros-rplidar)
 
 #### ros-board
-The standard ROS installation contains RViz, a powerful configurable tool that creates visual representations of your ros topics. Maps, image streams and even complex 3D robot models. This is great for development, but in our scope, we are targeting headless embedded computers. There’s a way to stream your topics to another machine that has a desktop environment, but the network configuration is pretty complex, and it tends to be laggy even in a local area network, not to mention miles away over a VPN.
-This is where dheera’s rosboard comes in handy. This is a great piece of software that provides a browser based visual representation of the topics published on your robot. It’s kind of like Grafana, but for robotics.
+The standard ROS installation contains RViz, a powerful configurable tool that creates visual representations of your ros topics. Maps, image streams and even complex 3D robot models. 
+
+This is great for development, but in our scope, we are targeting headless embedded computers. There’s a way to stream your topics to another machine that has a desktop environment, but the network configuration is pretty complex, and it tends to be laggy even in a local area network, not to mention miles away over a VPN.
+
+This is where [dheera’s rosboard](https://github.com/dheera/rosboard) comes in handy. This is a great piece of software that provides a browser based visual representation of the topics published on your robot. It’s kind of like Grafana, but for robotics.
 
 Add this to your docker-compose.yaml file to use this block:
 ```yaml
@@ -185,14 +207,33 @@ ros-board:
       - ros-bin:/opt/ros/noetic
 ```
 More info at [ros-board](https://github.com/cristidragomir97/ros-board)
-#### ros-joystick
-This is a very simple block that allows you to use any linux compatible gamepad to remotely control your robot. It turns information from /input/js0 to ROS messages on the /cmd_vel topic. You can configure its sensitivity using environment variables.
-```yaml
 
+#### ros-joystick
+This is a very simple block that allows you to use any linux compatible gamepad to remotely control your robot. It turns information from `/dev/input/js0`to ROS messages on the /cmd_vel topic. 
+
+
+```yaml
+ros-joystick:
+    depends_on:
+      - ros-core
+    image: cristidragomir97/ros-joystick
+    environment: 
+       - UDEV=1
+       - ROS_HOSTNAME=ros-joystick
+       - ROS_MASTER_URI=http://ros-core:11311
+    volumes:
+      - ros-bin:/opt/ros/noetic
+    devices:
+      - "/dev/input/js0:/dev/input/js0"
+    cap_add:
+      - SYS_RAWIO
 ```
-*** add example yaml?
+
+More info at [ros-joystick](https://github.com/cristidragomir97/ros-joystick)
+
 #### arduino-block
 While not a ros-block per se, this is a useful tool that helps you to compile, flash and update firmware using arduino-cli and avrdude. For now this is only compatible with 8-bit arduinos that use USB/UART.
+
 ```yaml
 arduino-block:
     image: cristidragomir97/arduino-block
@@ -210,31 +251,43 @@ arduino-block:
 
 
 Upon runtime, the block pulls the repository found at REPO, compiles the sketch for the board you have set with ARDUINO_FQBN, and flashes it to SERIAL_PORT using `avrdude`.
+
 ## Deployment
 You can find most of the popular ROS packages on their official repository and install them with your distro’s package manager. The true power of ROS however comes with its build system called catkin. You can configure very complex builds, that include code from many sources and written in different programming languages.
+
 There is one major downside to this, however: builds tend to get really large, really quickly. Complex packages like 3D SLAM, or advanced physics engines required for kinematics can take a long time to build on powerful x64 workstations, so building them on a Raspberry Pi like device is close to impossible.
+
 That’s where the balena cloud builder comes in handy.
+
 ### Take advantage of the cloud builder
 The cloud build can take care of this load for you, just configure your packages, create a docker file, and let the cloud builder take care of the heavy lifting for you. At the end, you’ll get an image containing just the artifacts that are really required. If you want to keep image size to a minimum, you can also use multistage docker builds to only include the required artifacts.
+
 ### Target multiple architectures
-Apart from some very specific cases, for example the ROS package for the Raspberry Pi camera, which uses both the physical CSI interface and some binary blobs from Broadcom, most ROS packages can be built for all the popular platforms out there, mainly armh, arm64 and amd64. Using balena you can also just create a fleet for each device type you are targeting and push your release to it.
-This is extremely useful as your solution grows. Another aspect of this is the ability to move between different SBCs with the same CPU architecture. You can prototype on a Raspberry Pi or Jetson Nano, and then move to something more production ready, like Variscite’s series of SOMs (System-on-a-Module).
+Apart from some very specific cases, for example the ROS package for the Raspberry Pi camera, which uses both the physical CSI interface and some binary blobs from Broadcom, most ROS packages can be built for all the popular platforms out there, mainly armh, arm64 and amd64. 
+
+Using balena you can also just create a fleet for each device type you are targeting and push your release to it. This is extremely useful as your solution grows.
+
+ Another aspect of this is the ability to move between different SBCs with the same CPU architecture. You can prototype on a Raspberry Pi or Jetson Nano, and then move to something more production ready, like Variscite’s series of SOMs (System-on-a-Module).
 ### Preloading & Delta Updates
-Since robotics tools, software and libraries are considerably more space hungry than other edge device use-cases, having the bulk of an image already loaded before the device is provisioned is crucial for robotics applications. Once it leaves the factory, it can be deployed in the wild, where no assumptions about the internet speed can be made. Learn more about preloading your application [here]()
+Since robotics tools, software and libraries are considerably more space hungry than other edge device use-cases, having the bulk of an image already loaded before the device is provisioned is crucial for robotics applications. Once it leaves the factory, it can be deployed in the wild, where no assumptions about the internet speed can be made. Any further update must be as slim in size as possible, and this is where [**delta updates**](https://www.balena.io/docs/learn/deploy/delta/) come in handy. Learn more about preloading your application [here](https://github.com/balena-io-modules/balena-preload)
+
 
 ## Scaling
 All the techniques, blocks, and aspects of the balena ecosystem we presented in this article are an integral part of making sure that deploying ROS-powered software to 100 robots is as easy as deploying software to one unit. The only thing you need to take care of is flashing the SD cards, but hey, we have [Etcher Pro](https://www.balena.io/etcher/pro/) for that. 
 
-*** something about viable use cases at scale?
 ## What’s next?
-Next up, we are going to pretend we are the fictional company Paws Inc. which is building the world's most advanced cat companion robot. Armed with a laser pointer and powerful machine learning, it can keep your pet busy for hours. We are going to use most of the blocks presented in this article to create a working prototype and then show you how to get this ready for mass deployment. Additionally, we are going to show you some tips and tricks on how to make your robot development workflow as fast as possible. 
+Next up, we are going to pretend we are the fictional company Paws Inc. which is building the world's most advanced cat companion robot. Armed with a laser pointer and powerful machine learning, it can keep your pet busy for hours. 
+
+We are going to use most of the blocks presented in this article to create a working prototype and then show you how to get this ready for mass deployment. Additionally, we are going to show you some tips and tricks on how to make your robot development workflow as fast as possible. 
+
 While I build out said fictional robot prototype, please check out the recently published ROS blocks and experiment on your own:
-[ros-core](https://github.com/cristidragomir97/ros-core)
-[ros-io](https://github.com/cristidragomir97/ros-io)
-[ros-camera](https://github.com/cristidragomir97/ros-camera)
-[ros-camera](https://github.com/cristidragomir97/ros-rplidar)
-[ros-board](https://github.com/cristidragomir97/ros-board)
-[ros-joystick](https://github.com/cristidragomir97/ros-joystick)
-[arduino-block](https://github.com/cristidragomir97/arduino-block)
+* [ros-core](https://github.com/cristidragomir97/ros-core)
+* [ros-io](https://github.com/cristidragomir97/ros-io)
+* [ros-camera](https://github.com/cristidragomir97/ros-camera)
+* [ros-rplidar](https://github.com/cristidragomir97/ros-rplidar)
+* [ros-board](https://github.com/cristidragomir97/ros-board)
+* [ros-joystick](https://github.com/cristidragomir97/ros-joystick)
+* [arduino-block](https://github.com/cristidragomir97/arduino-block)
+
 Also, please leave any questions and comments below!
 
