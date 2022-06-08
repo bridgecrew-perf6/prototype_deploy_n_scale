@@ -5,13 +5,16 @@ In [my last post](https://www.balena.io/blog/build-one-or-many-robots-balena-ros
 All around the world, people use ROS to develop robotics applications. The ROS ecosystem is a large and diverse group or organizations and individuals, including academia, enterprises such as ABB and Boston Dynamics, government and institutions like NASA and ESA, and thousands of robotics enthusiasts and makers all around the world.
 
 ### Demonstrating how Docker and ROS *can* work well together
-Last year, Canonical published an article on [6 reasons](https://ubuntu.com/blog/ros-docker) why Docker and ROS **are not a good fit**. To summarize, here are the main points of the article:
-No transactional updates for ROS on Docker
-No delta updates for applications
-Privileged containers are a security risk
-Configuring networking is challenging
-Fleet management is a pain.
-No notifications for updating vulnerable software packages
+Last year, Canonical published an article on [6 reasons](https://ubuntu.com/blog/ros-docker) why Docker and ROS **are not a good fit**. 
+
+To summarize, here are the main points of the article:
+* No transactional updates for ROS on Docker
+* No delta updates for applications
+* Privileged containers are a security risk
+* Configuring networking is challenging
+* Fleet management is a pain.
+* No notifications for updating vulnerable software packages
+
 Let’s go through some of these concerns and see how we could help.
 
 **Transactional updates** happen in a single step and can be rolled back in case of failure. While docker doesn’t support this functionality, the way releases are structured in balenaCloud, enables the same functionality, you can simply set the target release to an earlier, working version.
@@ -26,12 +29,12 @@ Adding a single device by its path: `/dev/i2c-1` instead of giving access to the
 
 In essence, `privileged: True` enables all the [**linux capabilities**](https://man7.org/linux/man-pages/man7/capabilities.7.html) for a specific container. A more fine grained way of accessing external hardware is to only enable `CAP_RAWIO` capability. [Here](https://www.balena.io/docs/learn/develop/hardware/)'s more info on how to do that.
 
-Additionally, if you are using a [balena base image]() for your container you can make use of UDEV to connect to dynamically named devices like the aforementioned usb-to-serial bridge.
+Additionally, if you are using a [balena base image](https://www.balena.io/docs/reference/base-images/base-images/#how-the-images-work-at-runtime) for your container you can make use of UDEV to connect to dynamically named devices like the aforementioned usb-to-serial bridge.
 
 #### Networking
-It's true that ROS has a few strict requirements, a few environment variables that you have to set in order to enable a multi-machine/multi-container setup. You can check them out here. 
+It's true that ROS has a few strict requirements when it comes to multi-device networking, mainly a few environment variables that you have to set. You find out more [here](http://wiki.ros.org/ROS/Tutorials/MultipleMachines) 
 
-On balena devices, services can be resolved by their hostname, no need to find out their IP or anything else. Check out the readme for [ros-core]() to see how easy it is to get multiple ros-based containers to talk to each other. 
+On balena devices, services can be resolved by their hostname, no need to find out their IP or anything else. Check out the readme for [ros-core](https://github.com/cristidragomir97/ros-core) to see how easy it is to get multiple ros-based containers to talk to each other. 
 Balena can furthermore help you by allowing you to SSH into your robots remotely, either from the dashboard or our [balena-cli]() tool.
 
 Additionally, if you enable the [Public URL](https://www.balena.io/docs/learn/manage/actions/#enable-public-device-url) option on the dashboard, you can expose a web-ui to the web. 
@@ -267,7 +270,8 @@ Apart from some very specific cases, for example the ROS package for the Raspber
 
 Using balena you can also just create a fleet for each device type you are targeting and push your release to it. This is extremely useful as your solution grows.
 
- Another aspect of this is the ability to move between different SBCs with the same CPU architecture. You can prototype on a Raspberry Pi or Jetson Nano, and then move to something more production ready, like Variscite’s series of SOMs (System-on-a-Module).
+ Another aspect of this is the ability to move between different SBCs with the same CPU architecture. You can prototype on a Raspberry Pi or Jetson Nano, and then move to something more production ready, like [Variscite’s series](https://www.variscite.com/products/system-on-module-som/) of SOMs (System-on-a-Module).
+ 
 ### Preloading & Delta Updates
 Since robotics tools, software and libraries are considerably more space hungry than other edge device use-cases, having the bulk of an image already loaded before the device is provisioned is crucial for robotics applications. Once it leaves the factory, it can be deployed in the wild, where no assumptions about the internet speed can be made. Any further update must be as slim in size as possible, and this is where [**delta updates**](https://www.balena.io/docs/learn/deploy/delta/) come in handy. Learn more about preloading your application [here](https://github.com/balena-io-modules/balena-preload)
 
