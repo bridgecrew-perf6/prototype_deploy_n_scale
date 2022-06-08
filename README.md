@@ -42,14 +42,6 @@ Additionally, if you enable the [Public URL](https://www.balena.io/docs/learn/ma
 Oh and as for **fleet management**, that’s literally what we do. :)
 
 That being said, we beg to differ and we won’t only show you why docker and ROS are a good fit, but also how we can help you grow your robotics solution from the prototyping stage to mass deployment and scaling using the same tools and principles.
-### Let’s review some ROS Terminology
-For the sake of clarity let’s define some of the basic ROS lingo used in this article:
-
-* **Nodes** are the basic units of computation for ROS. Nodes can either originate from ROS Packages or written by you in one of the client libraries, either roscpp, or rospy.
-
-* **Master** is the first ROS process launched. It works similarly to a DNS, it provides name registration/lookup for each node. Additionally it includes a key based storage system for parameters.
-* **Messages** are the means of communication for the Publisher/Subscriber Model. They are simply data structures composed of either standard primitive types, or arrays.
-* **Topics** are the channels of communication for the Publisher/Subscriber Model. Topics might require a specific message type.
   
 ## Prototyping
 Let’s take a concrete example out of my personal experience. For a former project, I was considering a couple of different single-board computers (SBCs). My goal was to find the cheapest, smallest, most powerful option that could support the Intel RealSense camera.
@@ -60,6 +52,7 @@ Anyway, the whole operation took several weeks, not to mention the compile time 
 This is exactly the kind of situation we mean when we say our mission is to “reduce friction for fleet owners”.
 
 Let’s explore the ways in which balena can help you drastically shorten your prototyping time.
+
 ### Blocks
 Per their official definition balena-blocks are “intelligent, drop-in chunks of functionality built to handle the basics, allowing you to focus on solving the hard problems”.
 
@@ -68,6 +61,7 @@ Let’s take the former example of the realsense camera. You can wrap the instal
 You are not only saving time for yourself. But also for everyone who might be using this part. You’ll only need to reference the block in your docker-compose.yaml file and you are ready to go.
 
 We have prepared a few ROS blocks, both to test the way ros-core would plug in with other blocks, and to provide you with a neat robotics starter kit. 
+
 
 Let’s explore some of the ros-centric blocks we have prepared for you:
 
