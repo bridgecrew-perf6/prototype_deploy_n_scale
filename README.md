@@ -4,7 +4,7 @@ In [my last post](https://www.balena.io/blog/build-one-or-many-robots-balena-ros
 
 All around the world, people use ROS to develop robotics applications. The ROS ecosystem is a large and diverse group or organizations and individuals, including academia, enterprises such as ABB and Boston Dynamics, government and institutions like NASA and ESA, and thousands of robotics enthusiasts and makers all around the world.
 
-### Demonstrating how Docker and ROS *can* work well together
+## Demonstrating how Docker and ROS *can* work well together
 Last year, Canonical published an article on [6 reasons](https://ubuntu.com/blog/ros-docker) why Docker and ROS **are not a good fit**. 
 
 To summarize, here are the main points of the article:
@@ -17,12 +17,13 @@ To summarize, here are the main points of the article:
 
 Let’s go through some of these concerns and see how we could help.
 
-**Transactional updates** happen in a single step and can be rolled back in case of failure. While docker doesn’t support this functionality, the way releases are structured in balenaCloud, enables the same functionality, you can simply set the target release to an earlier, working version.
+### Transactional updates
+Updates that happen in a single step and can be rolled back in case of failure are called atomic, or transactional. While docker doesn’t support this functionality, the way releases are structured in balenaCloud, enables the same functionality, you can simply set the target release to an earlier, working version.
 
-#### Delta updates and preloading
+### Delta updates and preloading
 Edge devices can be connected to the internet through various methods, from fast wired ethernet to LoRa and 3G Cellular. Robotics applications tend to be large in size compared to other edge-computing use cases. Balena can help you keep your robots up to date no matter how they are connected using [**delta updates**](https://www.balena.io/docs/learn/deploy/delta/) and [**preloading**](https://github.com/balena-io-modules/balena-preload)
 
-#### Connecting to external hardware resources
+### Connecting to external hardware resources
 Using GPIO, I2C, USB and other similar interfaces usually requires administrative rights on any linux box. A common solution to this when using docker is to add `privileged: True` to your `docker-compose.yaml` file for that specific container. However, this opens the door to a bunch of potential security issues. That’s why everybody will tell you that [privileged containers are a bad idea](https://www.trendmicro.com/en_us/research/19/l/why-running-a-privileged-container-in-docker-is-a-bad-idea.html).
 
 Adding a single device by its path: `/dev/i2c-1` instead of giving access to the whole bus or tree: `/dev/i2c` doesn't require a container to be privileged. In the case of I2C this is, but what about a USB-to-UART converter like CH340 which changes its name at every reconnection ?
@@ -31,7 +32,7 @@ In essence, `privileged: True` enables all the [**linux capabilities**](https://
 
 Additionally, if you are using a [balena base image](https://www.balena.io/docs/reference/base-images/base-images/#how-the-images-work-at-runtime) for your container you can make use of UDEV to connect to dynamically named devices like the aforementioned usb-to-serial bridge.
 
-#### Networking
+### Networking
 It's true that ROS has a few strict requirements when it comes to multi-device networking, mainly a few environment variables that you have to set. You find out more [here](http://wiki.ros.org/ROS/Tutorials/MultipleMachines) 
 
 On balena devices, services can be resolved by their hostname, no need to find out their IP or anything else. Check out the readme for [ros-core](https://github.com/cristidragomir97/ros-core) to see how easy it is to get multiple ros-based containers to talk to each other. 
