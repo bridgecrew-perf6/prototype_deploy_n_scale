@@ -35,7 +35,7 @@ Additionally, if you are using a [balena base image](https://www.balena.io/docs/
 It's true that ROS has a few strict requirements when it comes to multi-device networking, mainly a few environment variables that you have to set. You find out more [here](http://wiki.ros.org/ROS/Tutorials/MultipleMachines) 
 
 On balena devices, services can be resolved by their hostname, no need to find out their IP or anything else. Check out the readme for [ros-core](https://github.com/cristidragomir97/ros-core) to see how easy it is to get multiple ros-based containers to talk to each other. 
-Balena can furthermore help you by allowing you to SSH into your robots remotely, either from the dashboard or our [balena-cli]() tool.
+Balena can furthermore help you by allowing you to SSH into your robots remotely, either from the dashboard or our [balena-cli](https://www.balena.io/docs/learn/manage/ssh-access/#using-balena-ssh-from-the-cli) tool.
 
 Additionally, if you enable the [Public URL](https://www.balena.io/docs/learn/manage/actions/#enable-public-device-url) option on the dashboard, you can expose a web-ui to the web. 
 
@@ -58,6 +58,7 @@ I bought three different options, BananaPi Zero, NanoPi Duo2 and another one I c
 
 Anyway, the whole operation took several weeks, not to mention the compile time for the SDK only, was around 12h+ for each board.
 This is exactly the kind of situation we mean when we say our mission is to “reduce friction for fleet owners”.
+
 Let’s explore the ways in which balena can help you drastically shorten your prototyping time.
 ### Blocks
 Per their official definition balena-blocks are “intelligent, drop-in chunks of functionality built to handle the basics, allowing you to focus on solving the hard problems”.
@@ -271,7 +272,7 @@ Apart from some very specific cases, for example the ROS package for the Raspber
 Using balena you can also just create a fleet for each device type you are targeting and push your release to it. This is extremely useful as your solution grows.
 
  Another aspect of this is the ability to move between different SBCs with the same CPU architecture. You can prototype on a Raspberry Pi or Jetson Nano, and then move to something more production ready, like [Variscite’s series](https://www.variscite.com/products/system-on-module-som/) of SOMs (System-on-a-Module).
- 
+
 ### Preloading & Delta Updates
 Since robotics tools, software and libraries are considerably more space hungry than other edge device use-cases, having the bulk of an image already loaded before the device is provisioned is crucial for robotics applications. Once it leaves the factory, it can be deployed in the wild, where no assumptions about the internet speed can be made. Any further update must be as slim in size as possible, and this is where [**delta updates**](https://www.balena.io/docs/learn/deploy/delta/) come in handy. Learn more about preloading your application [here](https://github.com/balena-io-modules/balena-preload)
 
