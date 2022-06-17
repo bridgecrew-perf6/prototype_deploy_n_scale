@@ -276,7 +276,7 @@ Since robotics tools, software and libraries are considerably more space hungry 
 All the techniques, blocks, and aspects of the balena ecosystem we presented in this article are an integral part of making sure that deploying ROS-powered software to 100 robots is as easy as deploying software to one unit. The only thing you need to take care of is flashing the SD cards, but hey, we have [Etcher Pro](https://www.balena.io/etcher/pro/) for that. 
 
 ## What’s next?
-Next up, we are going to pretend we are the fictional company Paws Inc. which is building the world's most advanced cat companion robot. Armed with a laser pointer and powerful machine learning, it can keep your pet busy for hours. 
+Next up, I'm going to introduce you to yet another DIY robotics platform that I've been developing for the last couple of mind. It was built from scratch with blocks in mind and uses a brick style mounting system to make it *infinitely* extendable. Using that platform we are going to pretend we are the fictional company Paws Inc. which is building the world's most advanced cat companion robot. Armed with a laser pointer and powerful machine learning, it can keep your pet busy for hours. 
 
 We are going to use most of the blocks presented in this article to create a working prototype and then show you how to get this ready for mass deployment. Additionally, we are going to show you some tips and tricks on how to make your robot development workflow as fast as possible. 
 
